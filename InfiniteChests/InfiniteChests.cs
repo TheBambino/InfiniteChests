@@ -140,7 +140,7 @@ namespace InfiniteChests
 								byte prefix = reader.ReadByte();
 								int netID = reader.ReadInt16();
 								Infos[plr].TransactionsLeft++;
-								Task.Factory.StartNew(() => ModChest(plr, slot, netID, stack, prefix)).LogExceptions();
+                                Task.Factory.StartNew(() => ModChest(plr, slot, netID, stack, prefix)).LogExceptions();
 								e.Handled = true;
 							}
 							break;
@@ -729,36 +729,59 @@ namespace InfiniteChests
 				}
 
 				var info = Infos[plr];
-				if (chest.IsRefill)
-				{
-					lock (Timers)
-					{
-						if (!Timers.ContainsKey(new Point(info.X, info.Y)))
-							Timers.Add(new Point(info.X, info.Y), chest.RefillTime);
-					}
-				}
-				else
-				{
-					int[] itemArgs = new int[120];
-					string[] split = chest.Items.Split(',');
-					for (int i = 0; i < 120; i++)
-						itemArgs[i] = Convert.ToInt32(split[i]);
-					itemArgs[slot * 3] = ID;
-					itemArgs[slot * 3 + 1] = stack;
-					itemArgs[slot * 3 + 2] = prefix;
-					StringBuilder newItems = new StringBuilder();
-					for (int i = 0; i < 120; i++)
-						newItems.Append(itemArgs[i]).Append(",");
+                if (chest.IsRefill)
+                {
+                    lock (Timers)
+                    {
+                        if (!Timers.ContainsKey(new Point(info.X, info.Y)))
+                            Timers.Add(new Point(info.X, info.Y), chest.RefillTime);
+                    }
+                }
+                else
+                {
+                    string[] split = chest.Items.Split(',');
+                    bool empty = !split.Any(x => x != "0");
 
-					if (chest.IsBank)
-					{
-						Database.Query("UPDATE BankChests SET Items = @0 WHERE Account = @1 AND BankID = @2",
-							newItems.ToString(0, newItems.Length - 1), chest.Account, chest.BankID);
-					}
-					else
-					{
-						Database.Query("UPDATE Chests SET Items = @0 WHERE ID = @1", newItems.ToString(0, newItems.Length - 1), chest.ID);
-					}
+                    if (!chest.IsBank && empty &&
+                        (player.HasPermission(Permissions.spawnmob) && Main.hardMode && (ID == ItemID.LightKey && player.TPlayer.ZoneHoly) || (ID == ItemID.NightKey && (player.TPlayer.ZoneCrimson || player.TPlayer.ZoneCorrupt))))
+                    {
+                        //player.SetData(PIString, piinfo);
+                        NetMessage.SendData((int)PacketTypes.SyncPlayerChestIndex, -1, plr, NetworkText.Empty, plr, -1);
+                        KillChest(Infos[plr].X, Infos[plr].Y, plr);
+
+                        int type;
+                        if (ID == ItemID.LightKey)
+                            type = NPCID.BigMimicHallow;
+                        else if (ID == ItemID.NightKey && player.TPlayer.ZoneCrimson)
+                            type = NPCID.BigMimicCrimson;
+                        else //if (netid == 3091 && ciplayer.TPlayer.ZoneCorrupt)
+                            type = NPCID.BigMimicCorruption;
+
+                        var npc = TShock.Utils.GetNPCById(type);
+                        TSPlayer.Server.SpawnNPC(npc.type, npc.FullName, 1, player.TileX, player.TileY, 10, 10);
+                    }
+                    else
+                    {
+                        int[] itemArgs = new int[120];
+                        for (int i = 0; i < 120; i++)
+                            itemArgs[i] = Convert.ToInt32(split[i]);
+                        itemArgs[slot * 3] = ID;
+                        itemArgs[slot * 3 + 1] = stack;
+                        itemArgs[slot * 3 + 2] = prefix;
+                        StringBuilder newItems = new StringBuilder();
+                        for (int i = 0; i < 120; i++)
+                            newItems.Append(itemArgs[i]).Append(",");
+
+                        if (chest.IsBank)
+                        {
+                            Database.Query("UPDATE BankChests SET Items = @0 WHERE Account = @1 AND BankID = @2",
+                                newItems.ToString(0, newItems.Length - 1), chest.Account, chest.BankID);
+                        }
+                        else
+                        {
+                            Database.Query("UPDATE Chests SET Items = @0 WHERE ID = @1", newItems.ToString(0, newItems.Length - 1), chest.ID);
+                        }
+                    }
 				}
 				DecrementTransactions(plr);
 			}
