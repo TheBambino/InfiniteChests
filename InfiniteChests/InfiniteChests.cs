@@ -624,7 +624,7 @@ namespace InfiniteChests
 			else
 				player.SendErrorMessage("This chest is corrupted. Please destroy it.");
 		}
-		void KillChest(int x, int y, int plr)
+		void KillChest(int x, int y, int plr, bool noitem = false)
 		{
 			Chest chest = null;
 			using (QueryResult reader = Database.QueryReader("SELECT Account, Flags, ID, Items FROM Chests WHERE X = @0 AND Y = @1 AND WorldID = @2",
@@ -645,8 +645,11 @@ namespace InfiniteChests
 			TSPlayer player = TShock.Players[plr];
 			if (chest == null)
 			{
-				WorldGen.KillTile(x, y);
-				TSPlayer.All.SendData(PacketTypes.Tile, "", 0, x, y + 1);
+                if (noitem)
+                    WorldGen.KillTile(x, y, false, true, true);
+                else
+                    WorldGen.KillTile(x, y);
+                TSPlayer.All.SendData(PacketTypes.Tile, "", 0, x, y + 1);
 			}
 			else if (chest.Account != player.User?.Name && !String.IsNullOrEmpty(chest.Account) && !player.Group.HasPermission("infchests.admin.editall"))
 			{
@@ -666,7 +669,10 @@ namespace InfiniteChests
 			}
 			else
 			{
-				WorldGen.KillTile(x, y);
+                if(noitem)
+                    WorldGen.KillTile(x, y, false, true, true);
+                else
+				    WorldGen.KillTile(x, y);
 				Database.Query("DELETE FROM Chests WHERE ID = @0", chest.ID);
 				TSPlayer.All.SendData(PacketTypes.Tile, "", 0, x, y + 1);
 			}
@@ -747,7 +753,7 @@ namespace InfiniteChests
                     {
                         //player.SetData(PIString, piinfo);
                         NetMessage.SendData((int)PacketTypes.SyncPlayerChestIndex, -1, plr, NetworkText.Empty, plr, -1);
-                        KillChest(Infos[plr].X, Infos[plr].Y, plr);
+                        KillChest(Infos[plr].X, Infos[plr].Y, plr, true);
 
                         int type;
                         if (ID == ItemID.LightKey)
