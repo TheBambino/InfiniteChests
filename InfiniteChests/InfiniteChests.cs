@@ -645,12 +645,21 @@ namespace InfiniteChests
 			TSPlayer player = TShock.Players[plr];
 			if (chest == null)
 			{
-                if (noitem)
-                    WorldGen.KillTile(x, y, false, true, true);
+                if (noitem && !chest.IsBank)
+                {
+                    for (int i = x; i <= x + 1; i++)
+                    {
+                        for (int j = y; j <= y + 1; j++)
+                            Main.tile[i, j] = new Tile();
+                    }
+                    TSPlayer.All.SendData(PacketTypes.Tile, "", 0, x, y + 1);
+                }
                 else
+                {
                     WorldGen.KillTile(x, y);
-                TSPlayer.All.SendData(PacketTypes.Tile, "", 0, x, y + 1);
-			}
+                    TSPlayer.All.SendData(PacketTypes.Tile, "", 0, x, y + 1);
+                }
+            }
 			else if (chest.Account != player.User?.Name && !String.IsNullOrEmpty(chest.Account) && !player.Group.HasPermission("infchests.admin.editall"))
 			{
 				player.SendErrorMessage("This chest is protected.");
@@ -669,13 +678,24 @@ namespace InfiniteChests
 			}
 			else
 			{
-                if(noitem)
-                    WorldGen.KillTile(x, y, false, true, true);
+                Database.Query("DELETE FROM Chests WHERE ID = @0", chest.ID);
+                if (noitem && !chest.IsBank)
+                {
+                    for (int i = x; i <= x + 1; i++)
+                     {
+                        for (int j = y; j <= y + 1; j++)
+                            Main.tile[i, j] = new Tile();
+                    }
+                    TSPlayer.All.SendData(PacketTypes.Tile, "", 0, x, y + 1);
+                }
                 else
-				    WorldGen.KillTile(x, y);
-				Database.Query("DELETE FROM Chests WHERE ID = @0", chest.ID);
-				TSPlayer.All.SendData(PacketTypes.Tile, "", 0, x, y + 1);
-			}
+                {
+                    WorldGen.KillTile(x, y);
+                    TSPlayer.All.SendData(PacketTypes.Tile, "", 0, x, y + 1);
+                }
+
+
+            }
 		}
 		void ModChestName(int plr, string name)
 		{
@@ -748,19 +768,17 @@ namespace InfiniteChests
                     string[] split = chest.Items.Split(',');
                     bool empty = !split.Any(x => x != "0");
 
-                    if (!chest.IsBank && empty &&
-                        (player.HasPermission(Permissions.spawnmob) && Main.hardMode && (ID == ItemID.LightKey && player.TPlayer.ZoneHoly) || (ID == ItemID.NightKey && (player.TPlayer.ZoneCrimson || player.TPlayer.ZoneCorrupt))))
+                    if (!chest.IsBank && empty && stack == 1 && Main.hardMode && player.HasPermission(Permissions.spawnmob) && (ID == ItemID.LightKey || ID == ItemID.NightKey))
                     {
-                        //player.SetData(PIString, piinfo);
                         NetMessage.SendData((int)PacketTypes.SyncPlayerChestIndex, -1, plr, NetworkText.Empty, plr, -1);
                         KillChest(Infos[plr].X, Infos[plr].Y, plr, true);
 
                         int type;
                         if (ID == ItemID.LightKey)
                             type = NPCID.BigMimicHallow;
-                        else if (ID == ItemID.NightKey && player.TPlayer.ZoneCrimson)
+                        else if (ID == ItemID.NightKey && WorldGen.crimson)
                             type = NPCID.BigMimicCrimson;
-                        else //if (netid == 3091 && ciplayer.TPlayer.ZoneCorrupt)
+                        else
                             type = NPCID.BigMimicCorruption;
 
                         var npc = TShock.Utils.GetNPCById(type);
