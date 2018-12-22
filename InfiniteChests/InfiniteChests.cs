@@ -768,7 +768,7 @@ namespace InfiniteChests
                     string[] split = chest.Items.Split(',');
                     bool empty = !split.Any(x => x != "0");
 
-                    if (!chest.IsBank && empty && stack == 1 && Main.hardMode && player.HasPermission(Permissions.spawnmob) && (ID == ItemID.LightKey || ID == ItemID.NightKey))
+                    if (!chest.IsBank && empty && stack == 1 && Main.hardMode && player.HasPermission(Permissions.summonboss) && (ID == ItemID.LightKey || ID == ItemID.NightKey))
                     {
                         NetMessage.SendData((int)PacketTypes.SyncPlayerChestIndex, -1, plr, NetworkText.Empty, plr, -1);
                         KillChest(Infos[plr].X, Infos[plr].Y, plr, true);
