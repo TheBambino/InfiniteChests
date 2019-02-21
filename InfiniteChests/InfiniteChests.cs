@@ -29,7 +29,7 @@ namespace InfiniteChests
 	[ApiVersion(2, 1)]
 	public class InfiniteChests : TerrariaPlugin
 	{
-		private IDbConnection Database;
+		private static IDbConnection Database;
 		private PlayerInfo[] Infos = new PlayerInfo[256];
 		private System.Timers.Timer Timer = new System.Timers.Timer(1000);
 		private Dictionary<Point, int> Timers = new Dictionary<Point, int>();
@@ -1105,9 +1105,55 @@ namespace InfiniteChests
 			Infos[e.Player.Index].Action = ChestAction.Unprotect;
 			e.Player.SendInfoMessage("Open a chest to unprotect it.");
 		}
-	}
-
-	public static class TaskExt
+        public static bool IsNull(int x, int y)
+        {
+            Chest chest = new Chest();
+            using (QueryResult reader = Database.QueryReader("SELECT Account, BankID, Flags, Items, RefillTime, Password FROM Chests WHERE X = @0 AND Y = @1 AND WorldID = @2",
+            x, y, Main.worldID))
+            {
+                while (reader.Read())
+                {
+                    chest = new Chest
+                    {
+                        Items = reader.Get<string>("Items")
+                    };
+                }
+            }
+            return string.IsNullOrEmpty(chest.Items);
+        }
+        public static Chest[] GetAllIfnChest()
+        {
+            List<Chest> chest = new List<Chest>();
+            using (QueryResult reader = Database.QueryReader("SELECT * FROM Chests WHERE WorldID = @0", Main.worldID))
+            {
+                while (reader.Read())
+                {
+                    chest.Add(new Chest
+                    {
+                        Location = new Point(reader.Get<int>("X"), reader.Get<int>("Y")),
+                        Account = reader.Get<string>("Account"),
+                        Items = reader.Get<string>("Items"),
+                        Flags = (ChestFlags)reader.Get<int>("Flags"),
+                        BankID = reader.Get<int>("BankID"),
+                        RefillTime = reader.Get<int>("RefillTime"),
+                        HashedPassword = reader.Get<string>("Password")
+                    });
+                }
+            }
+            return chest.ToArray();
+        }
+        public static void UpdateInfChest(Chest chest)
+        {
+            Database.Query("UPDATE Chests SET Account = @0, BankID = @1, Flags = @2, Items = @3, RefillTime = @4, Password = @5 WHERE X == @6 AND Y == @7 AND WorldID == @8",
+                chest.Account, chest.BankID, chest.Flags, chest.Items, chest.RefillTime, chest.HashedPassword, chest.Location.X, chest.Location.Y, Main.worldID);
+        }
+        public static void InsertInfChest(Chest chest)
+        {
+            Database.Query("INSERT INTO Chests (Account, BankID, Flags, Items, RefillTime, Password, X, Y, WorldID) VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8)",
+                chest.Account, chest.BankID, chest.Flags, chest.Items, chest.RefillTime, chest.HashedPassword, chest.Location.X, chest.Location.Y, Main.worldID);
+        }
+    }
+    public static class TaskExt
 	{
 		public static Task LogExceptions(this Task task)
 		{
