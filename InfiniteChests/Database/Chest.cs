@@ -129,7 +129,7 @@ namespace InfiniteChests.Database
                 return true;
             }
 
-            var username = player.User?.Name;
+            var username = player.Account?.Name;
             var groupName = player.Group.Name;
             return IsPublic || OwnerName == username || AllowedUsernames.Contains(username) ||
                    AllowedGroupNames.Contains(groupName);
@@ -144,7 +144,7 @@ namespace InfiniteChests.Database
         {
             Debug.Assert(player != null);
 
-            return player.HasPermission("infchests.admin") || OwnerName == player.User?.Name;
+            return player.HasPermission("infchests.admin") || OwnerName == player.Account?.Name;
         }
 
         /// <summary>

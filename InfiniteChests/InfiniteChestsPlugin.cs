@@ -201,7 +201,7 @@ namespace InfiniteChests
 
                 session.PendingChestAction = ChestAction.ToggleUser;
                 var inputUsername = parameters[1];
-                if (TShock.Users.GetUserByName(inputUsername) == null)
+                if (TShock.UserAccounts.GetUserAccountByName(inputUsername) == null)
                 {
                     player.SendErrorMessage($"Invalid user '{inputUsername}'.");
                     return;
@@ -319,7 +319,7 @@ namespace InfiniteChests
                         refillTime = null;
                     }
 
-                    var ownerName = TShock.Users.GetUserByID(userId)?.Name;
+                    var ownerName = TShock.UserAccounts.GetUserAccountByID(userId)?.Name;
                     var chest = _database.Add(x, y, "", ownerName);
                     chest.IsPublic = isPublic;
                     chest.RefillTime = refillTime;
@@ -335,7 +335,7 @@ namespace InfiniteChests
                     }
                     foreach (var userId2 in users.Split(',').Select(int.Parse))
                     {
-                        var username = TShock.Users.GetUserByID(userId2)?.Name;
+                        var username = TShock.UserAccounts.GetUserAccountByID(userId2)?.Name;
                         if (username != null)
                         {
                             chest.AllowedUsernames.Add(username);
@@ -380,7 +380,7 @@ namespace InfiniteChests
                         OnPlayerChestSet(player, reader);
                         args.Handled = true;
                         return;
-                    case PacketTypes.TileKill:
+                    case PacketTypes.PlaceChest:
                         args.Handled = OnPlayerChestPlaceOrRemove(player, reader);
                         return;
                     case PacketTypes.ForceItemIntoNearestChest:
@@ -519,7 +519,7 @@ namespace InfiniteChests
                     }
 
                     Debug.WriteLine($"DEBUG: {player.Name} claimed a chest at {x}, {y}");
-                    chest.OwnerName = player.User?.Name;
+                    chest.OwnerName = player.Account?.Name;
                     _database.Update(chest);
                     player.SendInfoMessage("Claimed chest.");
                     break;
@@ -600,7 +600,7 @@ namespace InfiniteChests
                 var tileId = action == 0 ? TileID.Containers : action == 2 ? TileID.Dressers : TileID.Containers2;
                 var chestId = WorldGen.PlaceChest(x, y, tileId, false, style);
                 Main.chest[chestId] = null;
-                _database.Add(action == 2 ? x - 1 : x, y - 1, "", player.User?.Name);
+                _database.Add(action == 2 ? x - 1 : x, y - 1, "", player.Account?.Name);
                 // We don't send a chest creation packet, as the players have to "discover" the chest themselves.
                 TSPlayer.All.SendTileSquare(x, y, 4);
             }
@@ -642,7 +642,7 @@ namespace InfiniteChests
                         var session2 = player2.GetSession();
                         if (session2.ChestToId.TryGetValue(chest, out var chestId))
                         {
-                            player2.SendData(PacketTypes.TileKill, "", action, x, y, 0, chestId);
+                            player2.SendData(PacketTypes.PlaceChest, "", action, x, y, 0, chestId);
                         }
                     }
                     WorldGen.KillTile(x, y);

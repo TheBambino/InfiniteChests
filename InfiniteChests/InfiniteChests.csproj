@@ -33,13 +33,14 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Mono.Data.Sqlite">
-      <HintPath>..\refs\Mono.Data.Sqlite.dll</HintPath>
+      <HintPath>..\..\TShock\TShockAPI\bin\Release\Mono.Data.Sqlite.dll</HintPath>
     </Reference>
-    <Reference Include="MySql.Data">
-      <HintPath>..\refs\MySql.Data.dll</HintPath>
+    <Reference Include="MySql.Data, Version=8.0.23.0, Culture=neutral, PublicKeyToken=c5687fc88969c44d, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\TShock\TShockAPI\bin\Release\MySql.Data.dll</HintPath>
     </Reference>
     <Reference Include="OTAPI">
-      <HintPath>..\refs\OTAPI.dll</HintPath>
+      <HintPath>..\..\TShock\TShockAPI\bin\Release\OTAPI.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -50,10 +51,10 @@
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Xml" />
     <Reference Include="TerrariaServer">
-      <HintPath>..\refs\TerrariaServer.exe</HintPath>
+      <HintPath>..\..\TShock\TShockAPI\bin\Release\TerrariaServer.exe</HintPath>
     </Reference>
     <Reference Include="TShockAPI">
-      <HintPath>..\refs\TShockAPI.dll</HintPath>
+      <HintPath>..\..\TShock\TShockAPI\bin\Release\TShockAPI.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
