@@ -180,7 +180,7 @@ namespace InfiniteChests
 								e.Handled = true;
 							}
 							break;
-						case PacketTypes.TileKill:
+						case PacketTypes.PlaceChest:
 							{
 								if (Infos[plr].TransactionsLeft > 0)
 								{
@@ -200,20 +200,20 @@ namespace InfiniteChests
 										if (action == 0)
 										{
 											WorldGen.PlaceChest(x, y, 21, false, style);
-											NetMessage.SendData((int)PacketTypes.TileKill, -1, plr, NetworkText.Empty, 0, x, y, style, 1);
-											NetMessage.SendData((int)PacketTypes.TileKill, plr, -1, NetworkText.Empty, 0, x, y, style, 0);
+											NetMessage.SendData((int)PacketTypes.PlaceChest, -1, plr, NetworkText.Empty, 0, x, y, style, 1);
+											NetMessage.SendData((int)PacketTypes.PlaceChest, plr, -1, NetworkText.Empty, 0, x, y, style, 0);
 										}
 										else if (action == 2)
 										{
 											WorldGen.PlaceChest(x, y, 88, false, style);
-											NetMessage.SendData((int)PacketTypes.TileKill, -1, plr, NetworkText.Empty, 2, x, y, style, 1);
-											NetMessage.SendData((int)PacketTypes.TileKill, plr, -1, NetworkText.Empty, 2, x, y, style, 0);
+											NetMessage.SendData((int)PacketTypes.PlaceChest, -1, plr, NetworkText.Empty, 2, x, y, style, 1);
+											NetMessage.SendData((int)PacketTypes.PlaceChest, plr, -1, NetworkText.Empty, 2, x, y, style, 0);
 										}
 										else
 										{
 											WorldGen.PlaceChest(x, y, 467, false, style);
-											NetMessage.SendData((int)PacketTypes.TileKill, -1, plr, NetworkText.Empty, 4, x, y, style, 1);
-											NetMessage.SendData((int)PacketTypes.TileKill, plr, -1, NetworkText.Empty, 4, x, y, style, 0);
+											NetMessage.SendData((int)PacketTypes.PlaceChest, -1, plr, NetworkText.Empty, 4, x, y, style, 1);
+											NetMessage.SendData((int)PacketTypes.PlaceChest, plr, -1, NetworkText.Empty, 4, x, y, style, 0);
 										}
 
 										e.Handled = true;
@@ -298,7 +298,7 @@ namespace InfiniteChests
 				HelpText = "Unprotects a chest when selected."
 			});
 
-			switch (TShock.Config.StorageType.ToLower())
+			switch ("sqlite".ToLower())
 			{
 				case "mysql":
 					string[] host = TShock.Config.MySqlHost.Split(':');
@@ -364,7 +364,7 @@ namespace InfiniteChests
 			if (converted > 0)
 			{
 				TSPlayer.Server.SendSuccessMessage("[InfiniteChests] Converted {0} chest{1}.", converted, converted == 1 ? "" : "s");
-				WorldFile.saveWorld();
+				WorldFile.SaveWorld();
 			}
 		}
 
@@ -426,7 +426,7 @@ namespace InfiniteChests
 							player.SendErrorMessage("This chest is already protected.");
 							break;
 						}
-						Database.Query("UPDATE Chests SET Account = @0 WHERE ID = @1", player.User.Name, chest.ID);
+						Database.Query("UPDATE Chests SET Account = @0 WHERE ID = @1", player.Account.Name, chest.ID);
 						player.SendSuccessMessage("This chest is now protected.");
 						break;
 					case ChestAction.TogglePublic:
@@ -435,7 +435,7 @@ namespace InfiniteChests
 							player.SendErrorMessage("This chest is not protected.");
 							break;
 						}
-						if (chest.Account != player.User.Name && !player.Group.HasPermission("infchests.admin.editall"))
+						if (chest.Account != player.Account.Name && !player.Group.HasPermission("infchests.admin.editall"))
 						{
 							player.SendErrorMessage("This chest is not yours.");
 							break;
@@ -449,7 +449,7 @@ namespace InfiniteChests
 							player.SendErrorMessage("This chest is not protected.");
 							break;
 						}
-						if (chest.Account != player.User.Name && !player.Group.HasPermission("infchests.admin.editall"))
+						if (chest.Account != player.Account.Name && !player.Group.HasPermission("infchests.admin.editall"))
 						{
 							player.SendErrorMessage("This chest is not yours.");
 							break;
@@ -463,7 +463,7 @@ namespace InfiniteChests
 							player.SendErrorMessage("This chest is not protected.");
 							break;
 						}
-						if (chest.Account != player.User.Name && !player.Group.HasPermission("infchests.admin.editall"))
+						if (chest.Account != player.Account.Name && !player.Group.HasPermission("infchests.admin.editall"))
 						{
 							player.SendErrorMessage("This chest is not yours.");
 							break;
@@ -500,7 +500,7 @@ namespace InfiniteChests
 							player.SendErrorMessage("This chest is not protected.");
 							break;
 						}
-						if (chest.Account != player.User.Name && !player.Group.HasPermission("infchests.admin.editall"))
+						if (chest.Account != player.Account.Name && !player.Group.HasPermission("infchests.admin.editall"))
 						{
 							player.SendErrorMessage("This chest is not yours.");
 							break;
@@ -522,7 +522,7 @@ namespace InfiniteChests
 							player.SendErrorMessage("This chest is not protected.");
 							break;
 						}
-						if (chest.Account != player.User.Name && !player.Group.HasPermission("infchests.admin.editall"))
+						if (chest.Account != player.Account.Name && !player.Group.HasPermission("infchests.admin.editall"))
 						{
 							player.SendErrorMessage("This chest is not yours.");
 							break;
@@ -544,7 +544,7 @@ namespace InfiniteChests
 							player.SendErrorMessage("This chest is not protected.");
 							break;
 						}
-						if (chest.Account != player.User.Name && !player.Group.HasPermission("infchests.admin.editall"))
+						if (chest.Account != player.Account.Name && !player.Group.HasPermission("infchests.admin.editall"))
 						{
 							player.SendErrorMessage("This chest is not yours.");
 							break;
@@ -561,7 +561,7 @@ namespace InfiniteChests
 						}
 
 						bool isFree = string.IsNullOrEmpty(chest.Account);
-						bool isOwner = chest.Account == player.User?.Name || player.Group.HasPermission("infchests.admin.editall");
+						bool isOwner = chest.Account == player.Account?.Name || player.Group.HasPermission("infchests.admin.editall");
 						bool isRegion = chest.IsRegion && TShock.Regions.CanBuild(x, y, player);
 						if (!isFree && !isOwner && !chest.IsPublic && !isRegion)
 						{
@@ -660,7 +660,7 @@ namespace InfiniteChests
                     TSPlayer.All.SendData(PacketTypes.Tile, "", 0, x, y + 1);
                 }
             }
-			else if (chest.Account != player.User?.Name && !String.IsNullOrEmpty(chest.Account) && !player.Group.HasPermission("infchests.admin.editall"))
+			else if (chest.Account != player.Account?.Name && !String.IsNullOrEmpty(chest.Account) && !player.Group.HasPermission("infchests.admin.editall"))
 			{
 				player.SendErrorMessage("This chest is protected.");
 				player.SendTileSquare(x, y, 3);
@@ -825,7 +825,7 @@ namespace InfiniteChests
 		{
 			TSPlayer player = TShock.Players[plr];
 			Database.Query("INSERT INTO Chests (X, Y, Account, Flags, Items, Password, WorldID) VALUES (@0, @1, @2, 0, @3, NULL, @4)",
-				x, y - 1, (player.IsLoggedIn && player.Group.HasPermission("infchests.chest.protect")) ? player.User.Name : null,
+				x, y - 1, (player.IsLoggedIn && player.Group.HasPermission("infchests.chest.protect")) ? player.Account.Name : null,
 				"0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0," +
 				"0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0", Main.worldID);
 			Main.chest[0] = null;
@@ -901,7 +901,7 @@ namespace InfiniteChests
 
 				e.Player.SendSuccessMessage("Converted {0} chest{1}.", converted, converted == 1 ? "" : "s");
 				if (converted > 0)
-					WorldFile.saveWorld();
+					WorldFile.SaveWorld();
 			}).LogExceptions();
 		}
 		void Deselect(CommandArgs e)
@@ -1005,7 +1005,7 @@ namespace InfiniteChests
 
 					e.Player.SendSuccessMessage("Pruned {0} corrupted chest{1}.", corrupted, corrupted == 1 ? "" : "s");
 					if (corrupted + empty > 0)
-						WorldFile.saveWorld();
+						WorldFile.SaveWorld();
 				}).LogExceptions();
 		}
 		void Refill(CommandArgs e)
@@ -1087,7 +1087,7 @@ namespace InfiniteChests
 				Database.Query("DELETE FROM Chests WHERE WorldID = @0", Main.worldID);
 				e.Player.SendSuccessMessage("Reverse converted {0} chests.", i);
 				if (i > 0)
-					WorldFile.saveWorld();
+					WorldFile.SaveWorld();
 			}).LogExceptions();
 		}
 		void Unlock(CommandArgs e)

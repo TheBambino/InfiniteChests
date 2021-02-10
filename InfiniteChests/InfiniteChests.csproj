@@ -59,17 +59,17 @@
       <Private>False</Private>
     </Reference>
     <Reference Include="OTAPI">
-      <HintPath>References\OTAPI.dll</HintPath>
+      <HintPath>..\..\TShock\TShockAPI\bin\Release\OTAPI.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="TerrariaServer">
-      <HintPath>References\TerrariaServer.exe</HintPath>
+      <HintPath>..\..\TShock\TShockAPI\bin\Release\TerrariaServer.exe</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="TShockAPI">
-      <HintPath>References\TShockAPI.dll</HintPath>
+      <HintPath>..\..\TShock\TShockAPI\bin\Release\TShockAPI.dll</HintPath>
       <Private>False</Private>
     </Reference>
   </ItemGroup>
