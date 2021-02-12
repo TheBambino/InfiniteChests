@@ -38,15 +38,15 @@ namespace InfiniteChests
 
 		public override string Author
 		{
-			get { return "Maintained by Zaicon"; }
+			get { return "Zaicon, Modified by Bambino"; }
 		}
 		public override string Description
 		{
-			get { return "Allows for infinite chests, and supports all chest control commands."; }
+			get { return "Uses infinite chest as a means to World Regeneration while keeping Terraria Chest intact due to vanilla 8k limit."; }
 		}
 		public override string Name
 		{
-			get { return "InfiniteChests"; }
+			get { return "InfiniteChests vWR1"; }
 		}
 		public override Version Version
 		{
@@ -67,7 +67,6 @@ namespace InfiniteChests
 			{
 				ServerApi.Hooks.NetGetData.Deregister(this, OnGetData);
 				ServerApi.Hooks.GameInitialize.Deregister(this, OnInitialize);
-				//ServerApi.Hooks.GamePostInitialize.Deregister(this, OnPostInitialize);
 				ServerApi.Hooks.ServerLeave.Deregister(this, OnLeave);
 
 				Database.Dispose();
@@ -78,7 +77,6 @@ namespace InfiniteChests
 		{
 			ServerApi.Hooks.NetGetData.Register(this, OnGetData);
 			ServerApi.Hooks.GameInitialize.Register(this, OnInitialize);
-			//ServerApi.Hooks.GamePostInitialize.Register(this, OnPostInitialize);
 			ServerApi.Hooks.ServerLeave.Register(this, OnLeave);
 
 			Timer.Elapsed += OnElapsed;
@@ -103,49 +101,32 @@ namespace InfiniteChests
 
 		private static bool IsTerrariaChest(int x, int y, int plr)
 		{
-			Console.WriteLine("IsTerrariaChest...");
-			Console.WriteLine($"x = {x}");
-			Console.WriteLine($"y = {y}");
 			using (QueryResult reader = Database.QueryReader("SELECT ID FROM Chests WHERE X = @0 AND Y = @1 AND WorldID = @2",
 				x, y, Main.worldID))
 			{
 				if (reader.Read())
 				{
 					var ID = reader.Get<int>("ID");
-					Console.WriteLine($"InfiniteChest ID = {ID}");
 					if (ID > 0)
                     {
 						return false;
                     }
 					else
 						return true;
-					//Console.WriteLine($"reader.Read() = {reader.Read()}");
-					//return false;
-					//return;
-					//TShock.Players[plr].SendData(PacketTypes.ChestName, reader.Get<string>("Name"), 0, x, y);
 				}
 				return true;
 			}
 		}
 
-
 		private static int IsTerrariaChest2(int x, int y, int plr)
 		{
-			Console.WriteLine("IsTerrariaChest2...");
-			Console.WriteLine($"x = {x}");
-			Console.WriteLine($"y = {y}");
 			using (QueryResult reader = Database.QueryReader("SELECT ID FROM Chests WHERE X = @0 AND Y = @1 AND WorldID = @2",
 				x, y, Main.worldID))
 			{
 				if (reader.Read())
 				{
 					var ID = reader.Get<int>("ID");
-					Console.WriteLine($"InfiniteChest ID = {ID}");
 					return ID;
-					//Console.WriteLine($"reader.Read() = {reader.Read()}");
-					//return false;
-					//return;
-					//TShock.Players[plr].SendData(PacketTypes.ChestName, reader.Get<string>("Name"), 0, x, y);
 				}
 				else
 					return -500;
@@ -163,21 +144,17 @@ namespace InfiniteChests
 				{
 					switch (e.MsgID)
 					{
-						case PacketTypes.ChestName:
-							{
-								Console.WriteLine($"ChestName...");
-								Console.WriteLine($"plr = {plr}");
-								int id = reader.ReadInt16();
+						//case PacketTypes.ChestName:
+							//{
+								//int id = reader.ReadInt16();
 								//TSPlayer.All.SendInfoMessage("id: " + id);
-								int x = reader.ReadInt16();
-								int y = reader.ReadInt16();
-								Task.Factory.StartNew(() => GetNewChest(x, y, plr)).LogExceptions();
-							}
-							break;
+								//int x = reader.ReadInt16();
+								//int y = reader.ReadInt16();
+								//Task.Factory.StartNew(() => GetNewChest(x, y, plr)).LogExceptions();
+							//}
+							//break;
 						case PacketTypes.ChestGetContents:
 							{
-								Console.WriteLine($"ChestGetContents...");
-								Console.WriteLine($"plr = {plr}");
 								int x = reader.ReadInt16();
 								int y = reader.ReadInt16();
 								chestx = x;
@@ -191,17 +168,13 @@ namespace InfiniteChests
 									e.Handled = true;
 									return;
 								}
-								//int x = reader.ReadInt16();
-								//int y = reader.ReadInt16();
+
 								Task.Factory.StartNew(() => GetChest(x, y, plr)).LogExceptions();
 								e.Handled = true;
 							}
 							break;
 						case PacketTypes.ChestItem:
 							{
-								Console.WriteLine($"ChestItem...");
-								Console.WriteLine($"plr = {plr}");
-
 								if (IsTerrariaChest(chestx, chesty, plr))
                                 {
 									chestx = 50000;
@@ -224,9 +197,6 @@ namespace InfiniteChests
 							break;
 						case PacketTypes.ChestOpen:
 							{
-								Console.WriteLine($"..........................");
-								Console.WriteLine($"ChestOpen...");
-								Console.WriteLine($"plr = {plr}");
 								int action = reader.ReadInt16();
 								int x = reader.ReadInt16();
 								int y = reader.ReadInt16();
@@ -244,8 +214,6 @@ namespace InfiniteChests
 
 								if (IsTerrariaChest2(chestx, chesty, plr) > 0)
                                 {
-									Console.WriteLine($"ChestOpen - This is an Infinite Chest...");	
-									Console.WriteLine($"ChestOpen - action = {action}");
 									if (action == -1)
 									{
 										if (Infos[plr].TransactionsLeft > 0)
@@ -263,96 +231,47 @@ namespace InfiniteChests
 								}
 								else
                                 {
-									Console.WriteLine($"ChestOpen - This is a Terraria Chest...");	
 									return;
                                 }
 							}
 							break;
 						case PacketTypes.PlaceChest:
 							{
-								Console.WriteLine($"PlaceChest...");
-								Console.WriteLine($"plr = {plr}");
 								if (Infos[plr].TransactionsLeft > 0)
 								{
 									return;
 								}
 
 								byte action = reader.ReadByte();
-								Console.WriteLine($"action = {action}");
 								int x = reader.ReadInt16();
 								int y = reader.ReadInt16();
 								int style = reader.ReadInt16();
-								Console.WriteLine($"style = {style}");
 								int chestid = reader.ReadInt16();
-								Console.WriteLine($"TerrariaChest ID = {chestid}");
-
-								Console.WriteLine($"........................");
-								Console.WriteLine($"Before x = {x}");
-								Console.WriteLine($"Before y = {y}");
-
 								var tile = Main.tile[x, y];
+
 								// Chests and dressers have different widths, so we have to compensate.
 								var width = action == 1 ? 36 : 54;
 								x -= (short)(tile.frameX % width / 18);
 								y -= (short)(tile.frameY % 36 / 18);
-
-								Console.WriteLine($"Tile x = {x}");
-								Console.WriteLine($"Tile y = {y}");
 								
 								if (IsTerrariaChest2(x, y, plr) > 0)
 								{
-									Console.WriteLine($"PlaceChest Accepted...");
-									Console.WriteLine($"........................");
 									//Place Chest/Dresser
 									if (action == 0 || action == 2 || action == 4) 
 									{
-										/*if (TShock.Regions.CanBuild(x, y, TShock.Players[plr]))
-										{
-											Task.Factory.StartNew(() => { if (action == 2) x--; PlaceChest(x, y, plr); if (action == 2) x++; }).LogExceptions();
-											if (action == 0)
-											{
-												WorldGen.PlaceChest(x, y, 21, false, style);
-												NetMessage.SendData((int)PacketTypes.PlaceChest, -1, plr, NetworkText.Empty, 0, x, y, style, 1);
-												NetMessage.SendData((int)PacketTypes.PlaceChest, plr, -1, NetworkText.Empty, 0, x, y, style, 0);
-											}
-											else if (action == 2)
-											{
-												WorldGen.PlaceChest(x, y, 88, false, style);
-												NetMessage.SendData((int)PacketTypes.PlaceChest, -1, plr, NetworkText.Empty, 2, x, y, style, 1);
-												NetMessage.SendData((int)PacketTypes.PlaceChest, plr, -1, NetworkText.Empty, 2, x, y, style, 0);
-											}
-											else
-											{
-												WorldGen.PlaceChest(x, y, 467, false, style);
-												NetMessage.SendData((int)PacketTypes.PlaceChest, -1, plr, NetworkText.Empty, 4, x, y, style, 1);
-												NetMessage.SendData((int)PacketTypes.PlaceChest, plr, -1, NetworkText.Empty, 4, x, y, style, 0);
-											}
-
-											e.Handled = true;
-										}*/
 										return;
 									}
 									else if (TShock.Regions.CanBuild(x, y, TShock.Players[plr]) && (Main.tile[x, y].type == 21 || Main.tile[x, y].type == 88 || Main.tile[x, y].type == 467))
 									{
-										Console.WriteLine($"........................");
-										Console.WriteLine($"Breaking Infinite Chest...");
-										//if (Main.tile[x, y].frameY % 36 != 0)
-										//	y--;
-										//if (Main.tile[x, y].frameX % 36 != 0)
-										//	x--;
-
 										Task.Factory.StartNew(() => KillChest(x, y, plr)).LogExceptions();
 										e.Handled = true;
 									}
 								}
 								else
                                 {
-									Console.WriteLine($"PlaceChest Denied...");
-									Console.WriteLine($"........................");
 									return;
                                 }
 							}
-							Console.WriteLine($"......END Place Chest........");
 							break;
 					}
 				}
@@ -466,31 +385,6 @@ namespace InfiniteChests
 		{
 			Infos[e.Who] = new PlayerInfo();
 		}
-		/*void OnPostInitialize(EventArgs e)
-		{
-			int converted = 0;
-			var items = new StringBuilder();
-			for (int i = 0; i < 1000; i++)
-			{
-				Terraria.Chest c = Main.chest[i];
-				if (c != null)
-				{
-					for (int j = 0; j < 40; j++)
-						items.Append(c.item[j].netID).Append(",").Append(c.item[j].stack).Append(",").Append(c.item[j].prefix).Append(",");
-					Database.Query("INSERT INTO Chests (X, Y, Account, Items, WorldID) VALUES (@0, @1, '', @2, @3)",
-						c.x, c.y, items.ToString(0, items.Length - 1), Main.worldID);
-					converted++;
-					items.Clear();
-					Main.chest[i] = null;
-				}
-			}
-
-			if (converted > 0)
-			{
-				TSPlayer.Server.SendSuccessMessage("[InfiniteChests] Converted {0} chest{1}.", converted, converted == 1 ? "" : "s");
-				WorldFile.SaveWorld();
-			}
-		}*/
 
 		void GetNewChest(int x, int y, int plr)
 		{
