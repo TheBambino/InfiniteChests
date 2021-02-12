@@ -30,5 +30,15 @@ namespace InfiniteChests
 		{
 			get { return Flags.HasFlag(ChestFlags.Region); }
 		}
+
+		/// <summary>
+        ///     Gets the X coordinate.
+        /// </summary>
+        public int X { get; }
+
+        /// <summary>
+        ///     Gets the Y coordinate.
+        /// </summary>
+        public int Y { get; }
 	}
 }
